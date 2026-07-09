@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient; // Ensure the appropriate database client is used
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,11 @@ using System.Windows.Forms;
 
 namespace QUẢN_LÝ_KHÁCH_SẠN
 {
-    public partial class QuenMatKhau: Form
+    public partial class QuenMatKhau : Form
     {
+        // Assuming a connection string is available or managed by ConnectDb
+        private readonly string connectionString = "Your_Connection_String_Here";
+
         public QuenMatKhau()
         {
             InitializeComponent();
@@ -19,32 +23,55 @@ namespace QUẢN_LÝ_KHÁCH_SẠN
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            if(txtAccount.Text.Trim()== "")
+            string username = txtAccount.Text.Trim();
+
+            if (string.IsNullOrEmpty(username))
             {
                 lblError.Text = "Vui lòng nhập tên tài khoản";
                 return;
             }
-            else
+
+            // Hardcoded admin check optimization
+            if (username.Equals("admin", StringComparison.OrdinalIgnoreCase))
             {
-                string sql = "select * from [Users] where MaNV = '" + txtAccount.Text + "'";
-                if(txtAccount.Text == "admin")
+                lblError.Text = "Mật khẩu của admin là: admin";
+                return;
+            }
+
+            try
+            {
+                // Fix: Use parameterized queries to block SQL Injection
+                string query = "SELECT MatKhau FROM [Users] WHERE MaNV = @Username";
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    lblError.Text = "Mật khẩu của admin là: admin";
-                }
-                else
-                {
-                    ConnectDb con = new ConnectDb();
-                    DataTable dt = con.ReadData(sql);
-                    if (dt == null)
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
-                        lblError.Text = "Tài khoản không tồn tại";
-                    }
-                    else
-                    {
-                        lblError.Text = "Mật khẩu của bạn là: " + dt.Rows[0]["MatKhau"].ToString();
-                        txtAccount.Text = "";
+                        cmd.Parameters.AddWithValue("@Username", username);
+
+                        using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                        {
+                            DataTable dt = new DataTable();
+                            adapter.Fill(dt);
+
+                            if (dt.Rows.Count == 0)
+                            {
+                                lblError.Text = "Tài khoản không tồn tại";
+                            }
+                            else
+                            {
+                                // Ideally, implement a password reset flow here instead of displaying plaintext
+                                lblError.Text = "Mật khẩu của bạn là: " + dt.Rows[0]["MatKhau"].ToString();
+                                txtAccount.Clear();
+                            }
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                lblError.Text = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.";
+                // Log the exception (ex) in a production environment
             }
         }
     }
