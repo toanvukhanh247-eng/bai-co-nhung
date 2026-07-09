@@ -1,11 +1,17 @@
 ﻿using Microsoft.Reporting.WinForms;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace QUẢN_LÝ_KHÁCH_SẠN
 {
-    public partial class ReportKhachHang : Form
+    public partial class ReportKhachHang: Form
     {
         public ReportKhachHang()
         {
@@ -16,31 +22,20 @@ namespace QUẢN_LÝ_KHÁCH_SẠN
         {
             try
             {
-                // 1. Assign the embedded report definition path
                 reportViewer1.LocalReport.ReportEmbeddedResource = "QUẢN_LÝ_KHÁCH_SẠN.ReportKhachHang.rdlc";
-
-                // 2. Fetch the customer data
                 ConnectDb connectDb = new ConnectDb();
-                DataTable dtCustomers = connectDb.ReadData("SELECT * FROM Customers");
-
-                // 3. Initialize the data source cleanly using modern syntax
-                ReportDataSource reportDataSource = new ReportDataSource
-                {
-                    Name = "DataSet1",
-                    Value = dtCustomers
-                };
-
-                // 4. Safely clear old data mappings and bind the fresh data source
-                reportViewer1.LocalReport.DataSources.Clear();
+                ReportDataSource reportDataSource = new ReportDataSource();
+                reportDataSource.Name = "DataSet1";
+                reportDataSource.Value = connectDb.ReadData("select * from Customers");
                 reportViewer1.LocalReport.DataSources.Add(reportDataSource);
-
-                // 5. Trigger a single rendering update
                 this.reportViewer1.RefreshReport();
+
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Không thể tải báo cáo khách hàng: " + ex.Message, "Lỗi Hệ Thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi: " + ex.Message);
             }
+            this.reportViewer1.RefreshReport();
         }
     }
 }
