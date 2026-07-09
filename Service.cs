@@ -67,7 +67,7 @@ namespace QUẢN_LÝ_KHÁCH_SẠN
             int kq = Connect.WriteData(sql);
             if (kq > 0)
             {
-                MessageBox.Show("Sửa thành công 👍👍👍👍");
+                MessageBox.Show("Sửa thành công 👍👍");
                 LoaddataGrigService();
             }
             else
