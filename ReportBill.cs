@@ -1,17 +1,11 @@
 ﻿using Microsoft.Reporting.WinForms;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace QUẢN_LÝ_KHÁCH_SẠN
 {
-    public partial class ReportBill: Form
+    public partial class ReportBill : Form
     {
         public ReportBill()
         {
@@ -20,20 +14,25 @@ namespace QUẢN_LÝ_KHÁCH_SẠN
 
         private void ReportBill_Load(object sender, EventArgs e)
         {
-
-            this.reportViewer1.RefreshReport();
+            // 1. Set the embedded report path definition first
             reportViewer1.LocalReport.ReportEmbeddedResource = "QUẢN_LÝ_KHÁCH_SẠN.ReportBill.rdlc";
+
+            // 2. Retrieve data and bind it to the report layout
             ConnectDb connectDb = new ConnectDb();
-            ReportDataSource reportDataSource = new ReportDataSource();
-            reportDataSource.Name = "DataSet1";
-            reportDataSource.Value = connectDb.ReadData("select * from CtietHD");
+            DataTable dtReportData = connectDb.ReadData("SELECT * FROM CtietHD");
+
+            ReportDataSource reportDataSource = new ReportDataSource
+            {
+                Name = "DataSet1",
+                Value = dtReportData
+            };
+
+            // 3. Clear existing sources to prevent duplication and append the fresh source
+            reportViewer1.LocalReport.DataSources.Clear();
             reportViewer1.LocalReport.DataSources.Add(reportDataSource);
+
+            // 4. Refresh the report single time once configurations are complete
             this.reportViewer1.RefreshReport();
-        }
-
-        private void reportViewer1_Load(object sender, EventArgs e)
-        {
-
         }
     }
 }
